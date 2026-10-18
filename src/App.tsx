@@ -12,6 +12,7 @@ import {
   generatePage301,
   generatePage302,
   generatePage303,
+  generatePage304,
   generatePage324,
   generatePage330,
   generateTeamPage,
@@ -19,6 +20,9 @@ import {
 import { Tv, Sliders, Edit3, Volume2, VolumeX, HelpCircle, RotateCcw, Check, Trophy } from 'lucide-react';
 
 const STORAGE_KEY = 'ceefax_mode7_pages_v3';
+const isDynamicSportsPage = (pageNumber: number) =>
+  [301, 302, 303, 304, 324, 330].includes(pageNumber) ||
+  (pageNumber >= 331 && pageNumber <= 338);
 
 export default function App() {
   // Load pages from localStorage or fallback to default factory pages
@@ -60,6 +64,12 @@ export default function App() {
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [editorStartRow, setEditorStartRow] = useState<number>(0);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isDynamicSportsPage(currentPageNum)) {
+      setIsEditorOpen(false);
+    }
+  }, [currentPageNum]);
 
   // Top-to-bottom 500ms raster scanline draw counter (1 to 25)
   const [visibleRowsCount, setVisibleRowsCount] = useState<number>(25);
@@ -105,7 +115,20 @@ export default function App() {
     const unsub = sportsService.subscribe((state) => {
       setSportsState(state);
     });
-    return unsub;
+
+    const refreshSportsData = () => {
+      if (document.visibilityState === 'visible') {
+        void sportsService.refreshData(true);
+      }
+    };
+    const refreshTimer = window.setInterval(refreshSportsData, 60_000);
+    document.addEventListener('visibilitychange', refreshSportsData);
+
+    return () => {
+      unsub();
+      window.clearInterval(refreshTimer);
+      document.removeEventListener('visibilitychange', refreshSportsData);
+    };
   }, []);
 
   // On-demand fetch of team-specific matches when user opens a team page
@@ -118,41 +141,58 @@ export default function App() {
     }
   }, [currentPageNum, sportsState.teams]);
 
+  useEffect(() => {
+    if (currentPageNum !== 304) return;
+
+    const refreshLiveScores = () => {
+      if (document.visibilityState === 'visible') {
+        void sportsService.refreshLiveScores();
+      }
+    };
+    refreshLiveScores();
+    const refreshTimer = window.setInterval(refreshLiveScores, 60_000);
+    document.addEventListener('visibilitychange', refreshLiveScores);
+
+    return () => {
+      window.clearInterval(refreshTimer);
+      document.removeEventListener('visibilitychange', refreshLiveScores);
+    };
+  }, [currentPageNum]);
+
   // Current page object (or fallback for missing page)
   const activePage: TeletextPage = useMemo(() => {
     // Page 301: Sports Desk Index
     if (currentPageNum === 301) {
-      if (pages[301] && pages[301].isCustomUserEdit) return pages[301];
       return generatePage301(sportsState);
     }
 
     // Page 302: Premier League Previous Results
     if (currentPageNum === 302) {
-      if (pages[302] && pages[302].isCustomUserEdit) return pages[302];
       return generatePage302(sportsState);
     }
 
     // Page 303: Premier League Upcoming Fixtures
     if (currentPageNum === 303) {
-      if (pages[303] && pages[303].isCustomUserEdit) return pages[303];
       return generatePage303(sportsState);
+    }
+
+    // Page 304: Premier League Live Scores
+    if (currentPageNum === 304) {
+      return generatePage304(sportsState);
     }
 
     // Page 324: Premier League Table / Standings
     if (currentPageNum === 324) {
-      if (pages[324] && pages[324].isCustomUserEdit) return pages[324];
       return generatePage324(sportsState);
     }
 
     // Page 330: Premier League Club Directory
     if (currentPageNum === 330) {
-      if (pages[330] && pages[330].isCustomUserEdit) return pages[330];
       return generatePage330(sportsState);
     }
 
     // Pages 331 to 338: Individual Team Profile Pages
     if (currentPageNum >= 331 && currentPageNum <= 338) {
-      if (pages[currentPageNum] && pages[currentPageNum].isCustomUserEdit) return pages[currentPageNum];
       const team = sportsState.teams.find((t) => t.pageNumber === currentPageNum);
       if (team) {
         return generateTeamPage(team, sportsState);
@@ -190,7 +230,7 @@ export default function App() {
       ],
       fastext: { red: 100, green: 101, yellow: 120, cyan: 400 },
     };
-  }, [pages, currentPageNum]);
+  }, [pages, currentPageNum, sportsState]);
 
   // Current subpage index bounds
   const currentSubPage = Math.min(
@@ -257,6 +297,7 @@ export default function App() {
 
   // Handle clicking on a row on the CRT to edit it directly
   const handleRowClick = (rowIndex: number) => {
+    if (isDynamicSportsPage(currentPageNum)) return;
     setEditorStartRow(Math.max(0, rowIndex - 1)); // Row 0 is header, row 1-24 are lines 0-23
     setIsEditorOpen(true);
   };
@@ -386,6 +427,8 @@ export default function App() {
 
   // Save changes from Page Editor and persist to localStorage
   const handleSavePageLines = (newLines: string[]) => {
+    if (isDynamicSportsPage(currentPageNum)) return;
+
     setPages((prev) => {
       const updated = {
         ...prev,
@@ -517,14 +560,15 @@ export default function App() {
             <span>CRT Display</span>
           </button>
 
-          {/* Edit Page */}
-          <button
-            onClick={() => setIsEditorOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-amber-400 hover:bg-amber-300 text-black shadow-sm transition-colors cursor-pointer whitespace-nowrap"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Edit Page</span>
-          </button>
+          {!isDynamicSportsPage(currentPageNum) && (
+            <button
+              onClick={() => setIsEditorOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-amber-400 hover:bg-amber-300 text-black shadow-sm transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit Page</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -578,6 +622,10 @@ export default function App() {
                   <span>EDIT THIS PAGE</span>
                 </button>
               </div>
+            </div>
+          ) : isDynamicSportsPage(currentPageNum) ? (
+            <div className="mt-2 w-full max-w-[800px] px-2 text-xs font-mono text-neutral-500">
+              Live sports pages are read-only.
             </div>
           ) : (
             /* General quick bar for editing any page */
@@ -769,7 +817,7 @@ export default function App() {
         initialLines={activePage.subPages[currentSubPage]?.lines || []}
         pageNumber={currentPageNum}
         initialRow={editorStartRow}
-        isOpen={isEditorOpen}
+        isOpen={isEditorOpen && !isDynamicSportsPage(currentPageNum)}
         onClose={() => setIsEditorOpen(false)}
         onSave={handleSavePageLines}
       />

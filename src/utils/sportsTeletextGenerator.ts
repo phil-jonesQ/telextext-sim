@@ -1,10 +1,12 @@
 import { TeletextPage } from '../types/teletext';
-import { SportsDataState, TeamProfile } from '../services/sportsService';
+import { LiveFixture, SportsDataState, TeamProfile } from '../services/sportsService';
 import { M7 } from '../constants/teletextCodes';
 
 // Helper to pad string to exact length
 const pad = (s: string, len: number) => s.slice(0, len).padEnd(len, ' ');
 const rep = (c: string, len: number) => c.repeat(Math.max(0, len));
+const compactTeamName = (name: string) =>
+  name === 'IPSWICH TOWN' ? 'IPSWICH' : name === 'NOTTM FOREST' ? 'N FOREST' : name;
 
 /**
  * PAGE 301: Sports Headlines & Desk Index
@@ -22,6 +24,7 @@ export function generatePage301(sportsData: SportsDataState): TeletextPage {
     `${M7.BLU}${rep('-', 39)}`,
     `${M7.WHT}* PREVIOUS MATCH RESULTS ...... PAGE ${M7.YEL}302`,
     `${M7.WHT}* UPCOMING FIXTURES ........... PAGE ${M7.YEL}303`,
+    `${M7.WHT}* LIVE SCORES PAGE ${M7.YEL}304`,
     `${M7.WHT}* LEAGUE TABLE / STANDINGS .... PAGE ${M7.YEL}324`,
     `${M7.WHT}* PREMIER LEAGUE CLUBS ........ PAGE ${M7.YEL}330`,
     `${M7.BLU}${rep('-', 39)}`,
@@ -64,18 +67,18 @@ export function generatePage302(sportsData: SportsDataState): TeletextPage {
   // Subpage 1: Latest 6 results
   const sub1Lines: string[] = [
     `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 1/2`,
-    `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 `,
+    `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 1/2`,
     `${M7.CYN}PREMIER LEAGUE RECENT RESULTS:`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
 
   results.slice(0, 6).forEach((r) => {
     const dt = pad(r.date, 6);
-    const home = pad(r.homeTeam, 10);
-    const away = pad(r.awayTeam, 10);
+    const home = pad(r.homeTeam, 12);
+    const away = pad(r.awayTeam, 12);
     const score = `${r.homeScore}-${r.awayScore}`;
     sub1Lines.push(
-      `${M7.GRN}${dt} ${M7.WHT}${home} ${M7.YEL}${score} ${M7.WHT}${away} ${M7.GRN}FT`
+      `${M7.GRN}${dt} ${M7.WHT}${home} ${M7.YEL}${score} ${M7.WHT}${away} ${M7.GRN}${r.status}`
     );
   });
 
@@ -91,7 +94,7 @@ export function generatePage302(sportsData: SportsDataState): TeletextPage {
   // Subpage 2: Earlier results (indices 6 to 12)
   const sub2Lines: string[] = [
     `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 2/2`,
-    `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 `,
+    `${M7.YEL}${M7.DBL} CEEFAX RESULTS DESK 302 2/2`,
     `${M7.CYN}PREVIOUS ROUND SCORES:`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
@@ -101,11 +104,11 @@ export function generatePage302(sportsData: SportsDataState): TeletextPage {
 
   itemsToRender.forEach((r) => {
     const dt = pad(r.date, 6);
-    const home = pad(r.homeTeam, 10);
-    const away = pad(r.awayTeam, 10);
+    const home = pad(r.homeTeam, 12);
+    const away = pad(r.awayTeam, 12);
     const score = `${r.homeScore}-${r.awayScore}`;
     sub2Lines.push(
-      `${M7.GRN}${dt} ${M7.WHT}${home} ${M7.YEL}${score} ${M7.WHT}${away} ${M7.GRN}FT`
+      `${M7.GRN}${dt} ${M7.WHT}${home} ${M7.YEL}${score} ${M7.WHT}${away} ${M7.GRN}${r.status}`
     );
   });
 
@@ -148,7 +151,7 @@ export function generatePage303(sportsData: SportsDataState): TeletextPage {
   // Subpage 1: Next scheduled fixtures
   const sub1Lines: string[] = [
     `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 1/2`,
-    `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 `,
+    `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 1/2`,
     `${M7.CYN}NEXT SCHEDULED LEAGUE FIXTURES:`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
@@ -156,8 +159,8 @@ export function generatePage303(sportsData: SportsDataState): TeletextPage {
   fixtures.slice(0, 6).forEach((f) => {
     const dt = pad(f.date, 6);
     const tm = pad(f.time, 5);
-    const home = pad(f.homeTeam, 10);
-    const away = pad(f.awayTeam, 10);
+    const home = pad(compactTeamName(f.homeTeam), 11);
+    const away = pad(compactTeamName(f.awayTeam), 11);
     sub1Lines.push(
       `${M7.GRN}${dt} ${tm} ${M7.WHT}${home} v ${away}`
     );
@@ -175,7 +178,7 @@ export function generatePage303(sportsData: SportsDataState): TeletextPage {
   // Subpage 2: Following fixtures
   const sub2Lines: string[] = [
     `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 2/2`,
-    `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 `,
+    `${M7.YEL}${M7.DBL} CEEFAX FIXTURE DESK 303 2/2`,
     `${M7.CYN}UPCOMING MATCHES CONTINUED:`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
@@ -186,8 +189,8 @@ export function generatePage303(sportsData: SportsDataState): TeletextPage {
   itemsToRender.forEach((f) => {
     const dt = pad(f.date, 6);
     const tm = pad(f.time, 5);
-    const home = pad(f.homeTeam, 10);
-    const away = pad(f.awayTeam, 10);
+    const home = pad(compactTeamName(f.homeTeam), 11);
+    const away = pad(compactTeamName(f.awayTeam), 11);
     sub2Lines.push(
       `${M7.GRN}${dt} ${tm} ${M7.WHT}${home} v ${away}`
     );
@@ -232,14 +235,14 @@ export function generatePage324(sportsData: SportsDataState): TeletextPage {
   // Subpage 1: Top 10 (Positions 1 to 10)
   const sub1Lines: string[] = [
     `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE 1/2`,
-    `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE `,
+    `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE 1/2`,
     `${M7.CYN}POS TEAM         P  W  D  L  GD PTS`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
 
   standings.slice(0, 10).forEach((t) => {
     const rankStr = String(t.rank).padStart(2, ' ');
-    const teamStr = pad(t.team, 11);
+    const teamStr = pad(t.team, 12);
     const pStr = String(t.played).padStart(2, ' ');
     const wStr = String(t.win).padStart(2, ' ');
     const dStr = String(t.draw).padStart(2, ' ');
@@ -269,14 +272,14 @@ export function generatePage324(sportsData: SportsDataState): TeletextPage {
   // Subpage 2: Bottom 10 (Positions 11 to 20)
   const sub2Lines: string[] = [
     `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE 2/2`,
-    `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE `,
+    `${M7.YEL}${M7.DBL} BARCLAYS PREMIER LEAGUE 2/2`,
     `${M7.CYN}POS TEAM         P  W  D  L  GD PTS`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
 
   standings.slice(10, 20).forEach((t) => {
     const rankStr = String(t.rank).padStart(2, ' ');
-    const teamStr = pad(t.team, 11);
+    const teamStr = pad(t.team, 12);
     const pStr = String(t.played).padStart(2, ' ');
     const wStr = String(t.win).padStart(2, ' ');
     const dStr = String(t.draw).padStart(2, ' ');
@@ -379,28 +382,22 @@ export function generateTeamPage(
   // Trigger on-demand team specific fetch if not already loaded
   sportsData; // references state
 
-  const teamStanding = standings.find(
-    (s) => s.team.toUpperCase().includes(team.name) || team.name.includes(s.team)
-  );
+  const teamNameAliases = team.name === 'TOTTENHAM' ? [team.name, 'SPURS'] : [team.name];
+  const isTeam = (name: string) =>
+    teamNameAliases.some((alias) => name.toUpperCase().includes(alias));
+
+  const teamStanding = standings.find((s) => isTeam(s.team));
 
   // Check cached team match data first, then fall back to league results/fixtures
   const cachedData = teamMatches[team.id];
 
   const teamResult =
     cachedData?.lastMatch ||
-    results.find(
-      (r) =>
-        r.homeTeam.toUpperCase().includes(team.name) ||
-        r.awayTeam.toUpperCase().includes(team.name)
-    );
+    results.find((r) => isTeam(r.homeTeam) || isTeam(r.awayTeam));
 
   const teamFixture =
     cachedData?.nextMatch ||
-    fixtures.find(
-      (f) =>
-        f.homeTeam.toUpperCase().includes(team.name) ||
-        f.awayTeam.toUpperCase().includes(team.name)
-    );
+    fixtures.find((f) => isTeam(f.homeTeam) || isTeam(f.awayTeam));
 
   // Determine prev and next club page numbers for remote navigation
   const clubList = sportsData.teams;
@@ -417,7 +414,8 @@ export function generateTeamPage(
     `${M7.BLU}${rep('-', 39)}`,
     `${M7.WHT}HOME GROUND : ${M7.YEL}${team.stadium}`,
     `${M7.WHT}CAPACITY    : ${M7.CYN}${team.capacity}`,
-    `${M7.WHT}FOUNDED     : ${M7.CYN}${team.formed}   ${M7.WHT}NICKNAME: ${M7.MAG}${team.nickname}`,
+    `${M7.WHT}FOUNDED     : ${M7.CYN}${team.formed}`,
+    `${M7.WHT}NICKNAME    : ${M7.MAG}${team.nickname}`,
     `${M7.WHT}MANAGER     : ${M7.WHT}${team.manager}`,
     `${M7.BLU}${rep('-', 39)}`,
   ];
@@ -430,9 +428,9 @@ export function generateTeamPage(
   }
 
   if (teamResult) {
-    const h = pad(teamResult.homeTeam, 10);
-    const a = pad(teamResult.awayTeam, 10);
-    const isHome = teamResult.homeTeam.toUpperCase().includes(team.name);
+    const h = pad(teamResult.homeTeam, 12);
+    const a = pad(teamResult.awayTeam, 12);
+    const isHome = isTeam(teamResult.homeTeam);
     const scoreColor = isHome
       ? teamResult.homeScore > teamResult.awayScore
         ? M7.GRN
@@ -449,13 +447,13 @@ export function generateTeamPage(
       `${M7.CYN}RECENT RESULT (${teamResult.date}):`
     );
     lines.push(
-      ` ${M7.WHT}${h} ${scoreColor}${teamResult.homeScore}-${teamResult.awayScore} ${M7.WHT}${a} ${M7.GRN}FT`
+      ` ${M7.WHT}${h} ${scoreColor}${teamResult.homeScore}-${teamResult.awayScore} ${M7.WHT}${a} ${M7.GRN}${teamResult.status}`
     );
   }
 
   if (teamFixture) {
-    const h = pad(teamFixture.homeTeam, 10);
-    const a = pad(teamFixture.awayTeam, 10);
+    const h = pad(compactTeamName(teamFixture.homeTeam), 11);
+    const a = pad(compactTeamName(teamFixture.awayTeam), 11);
     lines.push(
       `${M7.CYN}NEXT FIXTURE (${teamFixture.date} ${teamFixture.time}):`
     );
@@ -489,5 +487,86 @@ export function generateTeamPage(
       },
     },
     subPages: [{ lines }],
+  };
+}
+
+export function generatePage304(
+  sportsData: Pick<SportsDataState, 'liveFixtures' | 'liveScoresError' | 'liveScoresUpdatedAt'>
+): TeletextPage {
+  const fixtures = sportsData.liveFixtures.filter(
+    (fixture) => fixture.status.toUpperCase() === 'LIVE'
+  );
+
+  const fixtureBatches = fixtures.length > 0
+    ? Array.from({ length: Math.ceil(fixtures.length / 4) }, (_, index) =>
+        fixtures.slice(index * 4, index * 4 + 4)
+      )
+    : [[]];
+  const subPages = fixtureBatches.map((batch, index) => {
+    const fraction = fixtureBatches.length > 1
+      ? ` ${index + 1}/${fixtureBatches.length}`
+      : '';
+    const lines: string[] = [
+      `${M7.YEL}${M7.DBL} CEEFAX LIVE SCORES 304${fraction}`,
+      `${M7.YEL}${M7.DBL} CEEFAX LIVE SCORES 304${fraction}`,
+      `${M7.CYN}PREMIER LEAGUE MATCH CENTRE`,
+      `${M7.BLU}${rep('-', 39)}`,
+    ];
+
+    if (sportsData.liveScoresError) {
+      lines.push(`${M7.RED}LIVE FEED UNAVAILABLE`);
+      lines.push(`${M7.WHT}${sportsData.liveScoresError.slice(0, 36)}`);
+    } else if (fixtures.length === 0) {
+      lines.push(
+        sportsData.liveScoresUpdatedAt
+          ? `${M7.YEL}NO LIVE PREMIER LEAGUE MATCHES`
+          : `${M7.YEL}CONNECTING TO LIVE SCORE FEED...`
+      );
+    } else {
+      batch.forEach((fixture) => {
+        const status = fixture.status.toUpperCase() === 'LIVE'
+          ? `LIVE ${fixture.minute || ''}`.trim()
+          : fixture.status.toUpperCase();
+        const hasScore =
+          fixture.homeScore !== null && fixture.awayScore !== null;
+        const score = hasScore
+          ? `${fixture.homeScore}-${fixture.awayScore}`
+          : ' - - ';
+        const isGoal = !!fixture.goalAlertUntil && fixture.goalAlertUntil > Date.now();
+        const scoreColor = isGoal ? M7.GRN : M7.YEL;
+
+        lines.push(`${M7.CYN}${status.slice(0, 32)}`);
+        lines.push(
+          `${M7.WHT}${pad(fixture.homeTeam.toUpperCase(), 14)} ${scoreColor}${score} ${M7.WHT}${pad(fixture.awayTeam.toUpperCase(), 14)}`
+        );
+        if (isGoal) {
+          lines.push(`${M7.RED}${M7.FLS}*** GOAL! ***${M7.STD}`);
+        }
+      });
+    }
+
+    while (lines.length < 18) lines.push('');
+    lines.push(`${M7.BLU}${rep('-', 39)}`);
+    lines.push(
+      `${M7.CYN}FEED UPDATED ${sportsData.liveScoresUpdatedAt || 'WAITING'}`
+    );
+    lines.push(`${M7.WHT}Live score refreshes every 60 seconds.`);
+    lines.push(`${M7.BLU}${rep('=', 39)}`);
+    lines.push(`${M7.RED}R302 ${M7.GRN}F303 ${M7.YEL}T324 ${M7.CYN}C330`);
+    return { lines };
+  });
+
+  return {
+    pageNumber: 304,
+    title: 'Premier League Live Scores',
+    category: 'sport',
+    fastext: {
+      red: 302,
+      green: 303,
+      yellow: 324,
+      cyan: 330,
+      labels: { red: 'Results', green: 'Fixtures', yellow: 'Table', cyan: 'Clubs' },
+    },
+    subPages,
   };
 }

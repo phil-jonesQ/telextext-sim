@@ -30,16 +30,16 @@ export const DEFAULT_PAGES: Record<number, TeletextPage> = {
           // Row 0 is dynamic header
           `${M7.BLU}${M7.BG_BLU}${rep(' ', 37)}`,
           `${M7.YEL}${M7.DBL} CEEFAX 100 ${M7.WHT}THE NATION'S TELETEXT`,
-          `${M7.YEL}${M7.DBL} CEEFAX 100 ${M7.CYN}ONLINE 24 HOURS      `,
+          `${M7.YEL}${M7.DBL} CEEFAX 100 ${M7.WHT}THE NATION'S TELETEXT`,
           `${M7.BLU}${M7.BG_BLU}${rep(' ', 37)}`,
           `${M7.WHT}NEWS HEADLINES ... 101 ${M7.GRN}WEATHER ... 400`,
           `${M7.WHT}UK NEWS .......... 102 ${M7.GRN}REGIONS ... 401`,
           `${M7.WHT}WORLD NEWS ....... 103 ${M7.GRN}WORLD ..... 402`,
           `${M7.WHT}SCI-TECH & AI .... 104 ${M7.GRN}5-DAY ..... 403`,
           `${M7.BLU}${rep('-', 39)}`,
-          `${M7.CYN}FINANCIAL MARKETS  120 ${M7.MAG}PL RESULTS  302`,
-          `${M7.CYN}COMMODITIES/FOREX  121 ${M7.MAG}PL FIXTURES 303`,
-          `${M7.CYN}TOP MOVERS & TECH  122 ${M7.MAG}PL TABLE .. 324`,
+          `${M7.CYN}MARKETS 120-122 ${M7.MAG}PL RESULTS 302`,
+          `${M7.CYN}PL FIXTURES 303 ${M7.MAG}PL TABLE 324`,
+          `${M7.CYN}PL LIVE SCORES 304`,
           `${M7.BLU}${rep('-', 39)}`,
           `${M7.YEL}TV & RADIO GUIDE . 600 ${M7.RED}BAMBOOZLE!  550`,
           `${M7.YEL}BBC ONE / TWO .... 601 ${M7.RED}TRIVIA QUIZ 551`,
@@ -80,7 +80,7 @@ export const DEFAULT_PAGES: Record<number, TeletextPage> = {
       {
         lines: [
           `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}1/3`,
-          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS `,
+          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}1/3`,
           `${M7.CYN}TOP STORIES TODAY:${M7.WHT}`,
           ``,
           `${M7.RED}>> GLOBAL AI BREAKTHROUGH ACCORD SIGNED`,
@@ -108,7 +108,7 @@ export const DEFAULT_PAGES: Record<number, TeletextPage> = {
       {
         lines: [
           `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}2/3`,
-          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS `,
+          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}2/3`,
           `${M7.CYN}INTERNATIONAL ROUND-UP:${M7.WHT}`,
           ``,
           `${M7.RED}>> JAMES WEBB FINDS WATER WORLDS`,
@@ -134,7 +134,7 @@ export const DEFAULT_PAGES: Record<number, TeletextPage> = {
       {
         lines: [
           `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}3/3`,
-          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS `,
+          `${M7.YEL}${M7.DBL} CEEFAX NEWS BULLETINS ${M7.WHT}3/3`,
           `${M7.CYN}HOME & CONSUMER NEWS:${M7.WHT}`,
           ``,
           `${M7.RED}>> POSTAL SERVICE ROLLS OUT DRONE FLEET`,
@@ -636,8 +636,8 @@ export const DEFAULT_PAGES: Record<number, TeletextPage> = {
           `${M7.YEL}FLASHING TEXT (136/137):`,
           `${M7.WHT}Steady text  ${M7.RED}${M7.FLS}* FLASHING ALERT *${M7.STD}${M7.WHT} Steady`,
           `${M7.YEL}DOUBLE HEIGHT (141) PAIRING:`,
-          `${M7.GRN}${M7.DBL}DOUBLE-HEIGHT ROW TOP HALF`,
-          `${M7.GRN}${M7.DBL}DOUBLE-HEIGHT ROW BOTTOM HALF`,
+          `${M7.GRN}${M7.DBL}DOUBLE-HEIGHT ROW`,
+          `${M7.GRN}${M7.DBL}DOUBLE-HEIGHT ROW`,
           `${M7.YEL}CONCEAL (152) & REVEAL:`,
           `${M7.MAG}Secret: ${M7.CON}THE TREASURE IS ON PAGE 550!`,
           `${M7.BLU}${rep('=', 39)}`,
