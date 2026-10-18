@@ -1,0 +1,6 @@
+{
+  "name": "Mode 7 BBC Teletext Emulator",
+  "description": "Authentic 1970s/80s SAA5050 Mode 7 Teletext emulator with CRT scanlines, live news, financial tickers, weather maps, Fastext, and Mode 7 graphics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

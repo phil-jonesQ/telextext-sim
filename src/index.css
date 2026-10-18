@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Bedstead';
+  src: url('/fonts/bedstead.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@layer utilities {
+  .font-teletext {
+    font-family: 'Bedstead', 'VT323', monospace;
+  }
+}
+
+.image-rendering-pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT Screen housing curvature effect */
+.crt-barrel-screen {
+  border-radius: 1.25rem;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.95), 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Newsflash Marquee animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
